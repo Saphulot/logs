@@ -11,6 +11,17 @@ import (
 
 var iniConfig = new(config.Ini)
 
+func run() {
+	for {
+		select {
+		case data := <-taillog.GetLine():
+			kafka.SendMsg(iniConfig.Kafka.Topic, data.Text)
+		default:
+			time.Sleep(time.Second)
+		}
+	}
+}
+
 func main() {
 	cfg, err := ini.Load("./config.ini")
 	if err != nil {
@@ -36,14 +47,6 @@ func main() {
 		return
 	}
 
-	for {
-		select {
-		case data := <-taillog.GetLine():
-			kafka.SendMsg(iniConfig.Kafka.Topic, data.Text)
-		default:
-			time.Sleep(time.Second)
-		}
-
-	}
+	run()
 
 }
